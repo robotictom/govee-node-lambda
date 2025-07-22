@@ -38,21 +38,22 @@ Supports local CLI usage on macOS/Linux or AWS Lambda deployment.
 
 ---
 
+◊◊
+
 ## Installation
 
 1. **Clone the repository**
+
     ```bash
     git clone https://github.com/robotictom/govee-light-control.git
     cd govee-light-control
     ```
 
-````
-
 2. **Install dependencies**
 
-   ```bash
-   npm install axios commander dotenv
-   ```
+    ```bash
+    npm install axios commander dotenv
+    ```
 
 ---
 
@@ -71,10 +72,10 @@ GOVEE_DEVICE_MODEL=H605C
 BASE_COLOR=FFDDAA
 ```
 
-* **GOVEE\_API\_KEY** — your Govee Developer API key
-* **GOVEE\_DEVICE\_ID** — the target device’s unique ID
-* **GOVEE\_DEVICE\_MODEL** — the target device’s SKU/model code
-* **BASE\_COLOR** (optional) — fallback hex color for `flash`/`reset`; defaults to `FFFFFF`
+-   **GOVEE_API_KEY** — your Govee Developer API key
+-   **GOVEE_DEVICE_ID** — the target device’s unique ID
+-   **GOVEE_DEVICE_MODEL** — the target device’s SKU/model code
+-   **BASE_COLOR** (optional) — fallback hex color for `flash`/`reset`; defaults to `FFFFFF`
 
 ---
 
@@ -109,9 +110,9 @@ node goveeControl.js --event set_color --hex 00FF00 --prevent-override
 
 1. **Bundle** your code and dependencies:
 
-   ```bash
-   zip -r function.zip goveeControl.js node_modules package.json
-   ```
+    ```bash
+    zip -r function.zip goveeControl.js node_modules package.json
+    ```
 
 2. **Create** a new Lambda function (Node.js 14.x or higher).
 
@@ -119,22 +120,22 @@ node goveeControl.js --event set_color --hex 00FF00 --prevent-override
 
 4. **Set** environment variables in Lambda configuration:
 
-   * `GOVEE_API_KEY`
-   * `GOVEE_DEVICE_ID`
-   * `GOVEE_DEVICE_MODEL`
-   * (Optional) `BASE_COLOR`
+    - `GOVEE_API_KEY`
+    - `GOVEE_DEVICE_ID`
+    - `GOVEE_DEVICE_MODEL`
+    - (Optional) `BASE_COLOR`
 
 5. **Handler**:
 
-   ```
-   goveeControl.handler
-   ```
+    ```
+    goveeControl.handler
+    ```
 
 6. **Test** with a payload:
 
-   ```json
-   { "event": "flash", "hex": "00FF00" }
-   ```
+    ```json
+    { "event": "flash", "hex": "00FF00" }
+    ```
 
 ---
 
@@ -148,12 +149,11 @@ node goveeControl.js --event set_color --hex 00FF00 --prevent-override
 | `reset`     | Power on & set to `BASE_COLOR` (or default white)                                                          | N/A                                 |
 | `set_color` | Set solid color via `--hex` (powers on unless `--prevent-override` is set)                                 | `--hex <hex>`, `--prevent-override` |
 
-* **`--hex <hex>`** — specify a hex color string (`#RRGGBB` or `RRGGBB`).
-* **`--prevent-override`** — for `set_color`, skip powering on if light is off.
+-   **`--hex <hex>`** — specify a hex color string (`#RRGGBB` or `RRGGBB`).
+-   **`--prevent-override`** — for `set_color`, skip powering on if light is off.
 
 ---
 
 ## License
 
 MIT
-````
