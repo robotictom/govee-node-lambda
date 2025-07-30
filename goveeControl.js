@@ -86,6 +86,14 @@ async function setColorCode(rgb) {
     });
 }
 
+async function setBrightness(brightness) {
+    await controlDevice({
+        type: 'devices.capabilities.range',
+        instance: 'brightness',
+        value: new Number(brightness),
+    });
+}
+
 async function setColorRGB(r, g, b) {
     const rgb = ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
     await controlDevice({
@@ -175,20 +183,38 @@ async function handleEvent(eventType, opts) {
             console.log('Color applied.');
             break;
 
+        case 'set_brightness':
+            if (!opts.brightness) {
+                throw new Error("Missing '--brightness' parameter for set_brightness event.");
+            }
+            if (!isOn && opts.preventOverride) {
+                console.log("Light is off and '--prevent-override' flag is set; no action taken.");
+                return;
+            }
+            if (!isOn) {
+                console.log('Light is off; turning on first...');
+                await turnOn();
+            }
+            await setBrightness(opts.brightness);
+            console.log('Brightness applied.');
+            break;
+
         default:
             throw new Error(`Unknown event: ${eventType}`);
     }
 }
 
 program
-    .requiredOption('-e, --event <type>', 'Event: turn_on, turn_off, flash, reset, set_color')
-    .option('--prevent-override', 'Prevent turning on if off')
+    .requiredOption('-e, --event <type>', 'Event: turn_on, turn_off, flash, reset, set_color, set_brightness')
+    .option('--prevent-override', 'Prevent turning on if on')
     .option('--hex <hex>', 'Hex color code (#RRGGBB or RRGGBB)')
+    .option('--brightness <integer>', 'Brightness value (0 - 100)')
     .action((opts) => {
         const ev = opts.event.toLowerCase();
         handleEvent(ev, {
             preventOverride: opts.preventOverride,
             hex: opts.hex,
+            brightness: opts.brightness,
         }).catch((err) => {
             console.error('Error:', err.message);
             process.exit(1);
@@ -206,6 +232,7 @@ exports.handler = async (lambdaEvent) => {
         await handleEvent(ev, {
             preventOverride: Boolean(lambdaEvent.preventOverride),
             hex: lambdaEvent.hex,
+            brightness: lambdaEvent.brightness,
         });
         return { statusCode: 200, body: JSON.stringify({ message: 'Success' }) };
     } catch (err) {
