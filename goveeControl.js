@@ -55,11 +55,24 @@ async function getDeviceState() {
 }
 
 async function controlDevice(capability) {
+    const opts = program.opts();
+
     const body = {
         requestId: randomUUID(),
         payload: { sku: DEVICE_MODEL, device: DEVICE_ID, capability },
     };
-    await axios.post(`${BASE_URL}/device/control`, body, { headers });
+    await axios
+        .post(`${BASE_URL}/device/control`, body, { headers })
+        .then(function (response) {
+            if (opts.debug) {
+                console.log(response);
+            }
+        })
+        .catch(function (error) {
+            if (opts.debug) {
+                console.log(error);
+            }
+        });
 }
 
 async function turnOn() {
@@ -237,6 +250,7 @@ program
     .option('--hex <hex>', 'Hex color code (#RRGGBB or RRGGBB)')
     .option('--brightness <integer>', 'Brightness value (0 - 100)')
     .option('--temperature <integer>', 'Temperature value (2000 - 9000)')
+    .option('--debug', 'Output debug messages')
     .action((opts) => {
         const ev = opts.event.toLowerCase();
         handleEvent(ev, {
@@ -244,6 +258,7 @@ program
             hex: opts.hex,
             brightness: opts.brightness,
             temperature: opts.temperature,
+            debug: opts.debug,
         }).catch((err) => {
             console.error('Error:', err.message);
             process.exit(1);
@@ -263,6 +278,7 @@ exports.handler = async (lambdaEvent) => {
             hex: lambdaEvent.hex,
             brightness: lambdaEvent.brightness,
             temperature: lambdaEvent.temperature,
+            debug: lambdaEvent.debug,
         });
         return { statusCode: 200, body: JSON.stringify({ message: 'Success' }) };
     } catch (err) {
