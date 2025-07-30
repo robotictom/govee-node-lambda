@@ -94,6 +94,14 @@ async function setBrightness(brightness) {
     });
 }
 
+async function setTemperature(temperature) {
+    await controlDevice({
+        type: 'devices.capabilities.color_setting',
+        instance: 'colorTemperatureK',
+        value: new Number(temperature),
+    });
+}
+
 async function setColorRGB(r, g, b) {
     const rgb = ((r & 0xff) << 16) + ((g & 0xff) << 8) + (b & 0xff);
     await controlDevice({
@@ -199,22 +207,43 @@ async function handleEvent(eventType, opts) {
             console.log('Brightness applied.');
             break;
 
+        case 'set_temperature':
+            if (!opts.temperature) {
+                throw new Error("Missing '--temperature' parameter for set_temperature event.");
+            }
+            if (!isOn && opts.preventOverride) {
+                console.log("Light is off and '--prevent-override' flag is set; no action taken.");
+                return;
+            }
+            if (!isOn) {
+                console.log('Light is off; turning on first...');
+                await turnOn();
+            }
+            await setTemperature(opts.temperature);
+            console.log('Temperature applied.');
+            break;
+
         default:
             throw new Error(`Unknown event: ${eventType}`);
     }
 }
 
 program
-    .requiredOption('-e, --event <type>', 'Event: turn_on, turn_off, flash, reset, set_color, set_brightness')
+    .requiredOption(
+        '-e, --event <type>',
+        'Event: turn_on, turn_off, flash, reset, set_color, set_brightness, set_temperature'
+    )
     .option('--prevent-override', 'Prevent turning on if on')
     .option('--hex <hex>', 'Hex color code (#RRGGBB or RRGGBB)')
     .option('--brightness <integer>', 'Brightness value (0 - 100)')
+    .option('--temperature <integer>', 'Temperature value (2000 - 9000)')
     .action((opts) => {
         const ev = opts.event.toLowerCase();
         handleEvent(ev, {
             preventOverride: opts.preventOverride,
             hex: opts.hex,
             brightness: opts.brightness,
+            temperature: opts.temperature,
         }).catch((err) => {
             console.error('Error:', err.message);
             process.exit(1);
@@ -233,6 +262,7 @@ exports.handler = async (lambdaEvent) => {
             preventOverride: Boolean(lambdaEvent.preventOverride),
             hex: lambdaEvent.hex,
             brightness: lambdaEvent.brightness,
+            temperature: lambdaEvent.temperature,
         });
         return { statusCode: 200, body: JSON.stringify({ message: 'Success' }) };
     } catch (err) {
